@@ -12,4 +12,9 @@ $(function() {
 	$('[name=autocomplete_names]').inlineComplete({
 		terms: termListNames
 	});
+	
+	// TODO Simulate very long request in combination with chaining methods.
+	$('[name=autocomplete_cities]').inlineComplete({
+		terms: 'cities.json'
+	});
 });
