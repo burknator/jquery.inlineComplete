@@ -10,6 +10,10 @@
 		}
 	})();
 	
+	/**
+	 * Sets and gets the cursor position inside the selected element(s).
+	 * @param {Number} pos Index of position to set.
+	 */
 	sub.fn.cursorPosition = function(pos) {
 		if(!this.is('input[type=text]'))
 			return this;
@@ -26,6 +30,11 @@
 		}
 	}
 	
+	/**
+	 * Selects the given range.
+	 * @param {Number} startPos
+	 * @param {Number} endPos
+	 */
 	sub.fn.select = function(startPos, endPos) {
 		if (startPos && endPos) {
 			// No filtering done here since we're checking the existence of selectionStart/-End and select().
@@ -50,17 +59,25 @@
 		return this;
 	}
 	
+	/**
+	 * Guts of the inlineComplete plugin.
+	 */
 	$._inlineComplete = {
+		/**
+		 * Performs the actual inline complete.
+		 * @param {DOMElement} inputElement The element which should have the inline complete.
+		 * @param {Object} event
+		 * @param {Object} termList
+		 */
 		_performComplete: function(inputElement, event, termList) {
 			// Deletes current selection created by prior autocomplete action, if any.
 			if (event.which == 8) // backspace
 				return true;
 			
-			var $this = sub(inputElement);
-			var curPos = $this.cursorPosition();
-			
-			var term = $this.val().substring(0, curPos);
-			var result = '';
+			var $this = sub(inputElement),
+				curPos = $this.cursorPosition(),
+				term = $this.val().substring(0, curPos),
+				result = '';
 			
 			if(term !== '') {      
 				for(var i = 0; i < termList.length; i++) {
@@ -71,12 +88,20 @@
 				}
 			}
 			
-			if(result !== '') {
-				$this.val(result).select(curPos, result.length);			
-			}
+			if(result !== '')
+				$this.val(result).select(curPos, result.length);
 		}
 	};
 	
+	/**
+	 * Register inlineComplete plugin. This enables you to use $('input').inlineComplete();
+	 * 
+	 * In the options object you have to at least include a list of terms you want have completion for.
+	 * The index for that list must be "terms". You may also pass a URL. inlineComplete will then
+	 * get the list of terms from that source. Again, the response must contain the "terms" index
+	 * containing the terms.
+	 * @param {Object} options
+	 */
 	$.fn.inlineComplete = function(options) {
 		if(!options.terms)
 			return this;
