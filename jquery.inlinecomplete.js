@@ -63,33 +63,46 @@
 	 * Guts of the inlineComplete plugin.
 	 */
 	$._inlineComplete = {
+		_defaultOptions: {
+			caseInsensitive: true
+		},
+		
 		/**
-		 * Performs the actual inline complete.
+		 * Performs the actual inline complete. Usually the body of the event callback.
 		 * @param {DOMElement} inputElement The element which should have the inline complete.
 		 * @param {Object} event
 		 * @param {Object} termList
 		 */
-		_performComplete: function(inputElement, event, termList) {
-			// Deletes current selection created by prior autocomplete action, if any.
-			if (event.which == 8) // backspace
+		_performComplete: function(inputElement, event, options) {
+			// Backspace deletes current selection created by prior autocomplete action, if any.
+			// Backspace or no data
+			if (event.which == 8 || !options.terms || options.terms.length == 0)
 				return true;
+			
+			termList = options.terms;
 			
 			var $this = sub(inputElement),
 				curPos = $this.cursorPosition(),
-				term = $this.val().substring(0, curPos),
-				result = '';
+				term = $this.val().substring(0, curPos);
+			
+			if(options.caseInsensitive == true) {
+				term = term.toLowerCase();
+			}
 			
 			if(term !== '') {      
 				for(var i = 0; i < termList.length; i++) {
-					if(termList[i].indexOf(term) === 0) {
-						result = termList[i];
+					currentTerm = termList[i];
+					
+					if(options.caseInsensitive == true) {
+						currentTerm = currentTerm.toLowerCase();
+					}
+					
+					if(currentTerm.indexOf(term) === 0) {
+						$this.val(termList[i]).select(curPos, currentTerm.length);
 						break;
 					}
 				}
 			}
-			
-			if(result !== '')
-				$this.val(result).select(curPos, result.length);
 		}
 	};
 	
@@ -106,6 +119,8 @@
 		if(!options.terms)
 			return this;
 		
+		options = $.extend({}, $._inlineComplete._defaultOptions, options);
+		
 		// TODO wouldn't it be great if you could pass a jqXHR object which
 		// is handled by inlineComplete?
 		if(typeof options.terms == 'string') {
@@ -121,7 +136,7 @@
 		} else {
 			// Why can't I use jQuery.live() here?!
 			this.filter('input[type=text]').bind('keyup', function(e) {
-				$._inlineComplete._performComplete(this, e, options.terms);
+				return $._inlineComplete._performComplete(this, e, options);
 			});
 		}
 		
