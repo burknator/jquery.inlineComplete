@@ -1,3 +1,32 @@
+/*
+ * jQuery inlineComplete Plugin
+ * Examples and documentation at: [place your URL here]
+ * Version: 0.1 ALPHA
+ * Requires: jQuery v? or later
+ *
+ * Licensed under the MIT license:
+ *
+ * Copyright (c) 2011 Patrick Burke
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 (function($) {
 	// If jQuery 1.5 is used, we generate a copy of it using the new sub()
 	// and create two more plugins called "cursorPosition" and "select" used
@@ -76,8 +105,11 @@
 		_performComplete: function(inputElement, event, options) {
 			// Backspace deletes current selection created by prior autocomplete action, if any.
 			// Backspace or no data
-			if (event.which == 8 || !options.terms || options.terms.length == 0)
+			if (event.which == 8 || !options.terms || options.terms.length == 0) 
 				return true;
+			else if (event.which == 13) {
+				// TODO Blur and set selection to end of text!
+			}
 			
 			termList = options.terms;
 			
@@ -116,10 +148,22 @@
 	 * @param {Object} options
 	 */
 	$.fn.inlineComplete = function(options) {
-		if(!options.terms)
-			return this;
-		
 		options = $.extend({}, $._inlineComplete._defaultOptions, options);
+		
+		if(!options.terms) {
+			if(this.data('terms')) {
+				if(this.data('terms').indexOf('list') === 0) {
+					options.terms = this.data('terms').replace(/^list:/i, '').split('|');
+				} else if(this.data('terms').indexOf('url') === 0) {
+					options.terms = this.data('terms').replace(/^url:/i, '');
+				}
+			}
+		}
+		
+		// Still no options? Get the hell out of here!
+		if(!options.terms) {
+			return this;
+		}
 		
 		// TODO wouldn't it be great if you could pass a jqXHR object which
 		// is handled by inlineComplete?

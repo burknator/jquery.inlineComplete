@@ -2,8 +2,8 @@ $(function() {
 	var termListUrls = ["facebook.com", "apple.de", "google.de", "www.golem.de", "golem.de"];
 	var termListNames = ["Peter", "Karl", "Patrick", "Leonardo", "Mark"];
 	
-	$('#url-list').text(termListUrls.join(', '));
-	$('#name-list').text(termListNames.join(', '));
+	$('.url-list').text(termListUrls.join(', '));
+	$('.name-list').text(termListNames.join(', '));
 	
 	$('[name=autocomplete_urls]').inlineComplete({
 		terms: termListUrls
@@ -17,4 +17,8 @@ $(function() {
 	$('[name=autocomplete_cities]').inlineComplete({
 		terms: 'cities.json'
 	});
+	
+	$('[name=autocomplete_data_attr_list]').inlineComplete();
+	
+	$('[name=autocomplete_data_attr_url]').inlineComplete();
 });

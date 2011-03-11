@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>jQuery.inlineComplete demo - patrickburke.de</title>
+		<title>jQuery.inlineComplete demo</title>
 		<meta charset="utf-8"/>
 		<meta name="robots" content="noindex"/>
 		<style type="text/css">
@@ -19,16 +19,24 @@
 		&copy; 2011 Patrick Burke, <a href="http://patrickburke.de">http://patrickburke.de</a>
 	</p>
 	<p>
-		This input field should complete these URLs: <span id="url-list"></span><br/>
+		This input field should complete these URLs: <span class="url-list"></span><br/>
 		<input type="text" name="autocomplete_urls"/>
 	</p>
 	<p>
-		This input field should complete these names: <span id="name-list"></span><br/>
+		This input field should complete these names: <span class="name-list"></span><br/>
 		<input type="text" name="autocomplete_names"/>
 	</p>
 	<p>
 		This input field should complete some cities <br />
 		<input type="text" name="autocomplete_cities"/>
+	</p>
+	<p>
+		This input field should complete these URLs: <span class="url-list"></span><br/>
+		<input type="text" data-terms="list:facebook.com|apple.de|google.de|www.golem.de|golem.de" name="autocomplete_data_attr_list"/>
+	</p>
+	<p>
+		This input field should complete some cities <br />
+		<input type="text" data-terms="url:cities.json" name="autocomplete_data_attr_url"/>
 	</p>
 </body>
 </html>
