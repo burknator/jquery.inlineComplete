@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title>jQuery.inlineComplete demo</title>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+	<script type="text/javascript" src="jquery.inlinecomplete.js"></script>
+	<script type="text/javascript">
+$(function() {
+	$('[name=artist].inline-complete').inlineComplete({
+		terms: ["Daft Punk", "Deadmau5", "Rammstein", "Rihanna", "Eminem", "Michael Jackson"]
+	});
+	
+	$('[name=artist].inline-complete').inlineComplete({
+		terms: "artistlist.json"
+	});
+});
+	</script>
+</head>
+<body>
+	<h1>Your favourite artist</h1>
+	<p>
+		Please type in your favourite artist: <input type="text" name="artist" class="inline-complete" id="" />
+	</p>
+</body>
+</html>
