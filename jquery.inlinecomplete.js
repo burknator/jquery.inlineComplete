@@ -1,8 +1,8 @@
 /*
  * jQuery inlineComplete Plugin
  * Examples and documentation at: [place your URL here]
- * Version: 0.1 ALPHA
- * Requires: jQuery v? or later
+ * Version: 0.12 ALPHA
+ * Requires: jQuery v1.5
  *
  * Licensed under the MIT license:
  *
@@ -26,7 +26,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 (function($) {
 	/**
 	 * Guts of the inlineComplete plugin.
@@ -60,7 +59,7 @@
 				return true;
 			}
 			
-			// Backspace deletes current selection created by prior autocomplete action, if any.
+			// Backspace deletes current selection created by prior auto-complete action, if any.
 			// Backspace or no data
 			if (event.which == 8 || !options.terms || options.terms.length == 0) 
 				return true;
@@ -76,7 +75,7 @@
 			if(letter == '')
 				return true;
 			
-			// fromCharCode allways returns uppercase...
+			// String.fromCharCode returns uppercase...
 			if(!event.shiftKey)
 				letter = letter.toLowerCase();
 			
@@ -106,7 +105,7 @@
 							&& event.type == 'keydown'
 							&& $this.selection('start') != $this.selection('end'))
 						{
-							$this.selection(curPos + 1, currentTerm.length);
+							$this.select(curPos + 1, currentTerm.length);
 							
 							// If this execution branch was reached, there is no need to
 							// execute at keyup again since the inline-completion is already done.
@@ -116,7 +115,7 @@
 							// entered into the text field.
 							returnValue = false;
 						} else  {
-							$this.val(termList[i]).selection(curPos, currentTerm.length);
+							$this.val(termList[i]).select(curPos, currentTerm.length);
 						}
 
 						break;
@@ -128,6 +127,7 @@
 		}
 	};
 	
+	// Grab a clone of jQuery and store it inside of the plugin
 	$._inlineComplete.sub = $.sub();
 	
 	/**
@@ -135,12 +135,9 @@
 	 * @param {Number} pos Index of position to set.
 	 */
 	$._inlineComplete.sub.fn.cursorPosition = function(pos) {
-		if(!this.is('input[type=text]'))
-			return this;
-		
 		if (pos) {
-			this.each(function() {
-				$._inlineComplete.sub(this).select(pos, pos);
+			this.filter('input[type=text]').each(function() {
+				$._inlineComplete.sub(this).selection(pos, pos);
 			});
 			
 			return this;
@@ -150,14 +147,14 @@
 	}
 	
 	/**
-	 * Selects the given range.
+	 * Register the select plugin in the inlineComplete settings. Selects a range in the selected text fields.
 	 * @param {Number} startPos
 	 * @param {Number} endPos
 	 */
-	$._inlineComplete.sub.fn.selection = function(startPos, endPos) {
+	$._inlineComplete.sub.fn.select = function(startPos, endPos) {
 		if (typeof startPos == 'number' && typeof endPos == 'number') {
 			// No element filtering done here since we're checking for the existence of selectionStart/-End and select().
-			this.each(function() {
+			this.filter('[type=text]').each(function() {
 				if (typeof this.selectionStart != "undefined") {
 					// Cool browsers
 					this.selectionStart = startPos;
@@ -173,68 +170,45 @@
 					range.select();
 			 	}
 			});
-		} else if(typeof startPos == 'string' && !endPos) {
-			type = startPos.toLowerCase();
-			
-			if (type == 'start' || type == 'end') {
-				var returnValue = '',
-					$this		= $._inlineComplete.sub(this.get(0)),
-					el			= this.get(0);
-				
-				if (typeof el.selectionStart != "undefined") {
-					if (type == 'start') {
-						returnValue = el.selectionStart;
-					} else if (type == 'end') {
-						returnValue = el.selectionEnd;
-					}
-				} else if (document.selection && document.selection.createRange) {
-					var range = document.selection.createRange(),
-						start = $this.val().indexOf(range.text);
-					
-					if (type == 'start') {
-						returnValue = start;
-					} else if (type == 'end') {
-						returnValue = start + range.text.length;
-					}
-				}
-					
-				return returnValue;
-			}
 		}
 		
 		return this;
 	}
 	
-	/*
-$._inlineComplete.sub.fn.selection = function(type) {
+	/**
+	 * Get the selection start or end point.
+	 * @param {String} type Either 'start' or 'end'.
+	 */
+	$._inlineComplete.sub.fn.selection = function(type) {
 		type = type.toLowerCase();
 		
-		var returnValue = '',
-			$this		= $._inlineComplete.sub(this.get(0));
-		
 		if (type == 'start' || type == 'end') {
-			if (typeof this.selectionStart != "undefined") {
-				if(type == 'start') {
-					returnValue = this.selectionStart;
-				} else if(type == 'end') {
-					returnValue = this.selectionEnd;
+			var returnValue = '',
+				$this		= $._inlineComplete.sub(this.get(0)),
+				el			= this.get(0);
+			
+			if (typeof el.selectionStart != "undefined") {
+				if (type == 'start') {
+					returnValue = el.selectionStart;
+				} else if (type == 'end') {
+					returnValue = el.selectionEnd;
 				}
-			}
-			else if (document.selection && document.selection.createRange) {
+			} else if (document.selection && document.selection.createRange) {
+				// IE branch
+				// TODO This does not work at all
 				var range = document.selection.createRange(),
 					start = $this.val().indexOf(range.text);
 				
-				if(type == 'start') {
+				if (type == 'start') {
 					returnValue = start;
-				} else if(type == 'end') {
+				} else if (type == 'end') {
 					returnValue = start + range.text.length;
 				}
-		 	}
+			}
+				
+			return returnValue;
 		}
-		
-		return returnValue;
 	}
-*/
 	
 	/**
 	 * Register inlineComplete plugin. This enables you to use $('input').inlineComplete();
