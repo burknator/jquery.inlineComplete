@@ -28,66 +28,6 @@
  */
 
 (function($) {
-	// If jQuery 1.5 is used, we generate a copy of it using the new sub()
-	// and create two more plugins called "cursorPosition" and "select" used
-	// by inlineComplete.
-	var sub = (function() {
-		if(typeof $.sub != 'undefined') {
-			return $.sub();
-		} else {
-			return $;
-		}
-	})();
-	
-	/**
-	 * Sets and gets the cursor position inside the selected element(s).
-	 * @param {Number} pos Index of position to set.
-	 */
-	sub.fn.cursorPosition = function(pos) {
-		if(!this.is('input[type=text]'))
-			return this;
-		
-		if (pos) {
-			this.each(function() {
-				// TODO this doesn't work in IE, see select() "IE branch"
-				this.selectionStart = pos;
-			});
-			return this;
-		} else {
-			// TODO this doesn't work in IE, see select() "IE branch"
-			return this.get(0).selectionStart;
-		}
-	}
-	
-	/**
-	 * Selects the given range.
-	 * @param {Number} startPos
-	 * @param {Number} endPos
-	 */
-	sub.fn.select = function(startPos, endPos) {
-		if (startPos && endPos) {
-			// No filtering done here since we're checking the existence of selectionStart/-End and select().
-			this.each(function() {
-				if (typeof this.selectionStart != "undefined") {
-					this.selectionStart = startPos;
-					this.selectionEnd = endPos;
-				}
-				else if (document.selection && document.selection.createRange && this.select) {
-					// IE branch
-					this.focus();
-					this.select();
-					var range = document.selection.createRange();
-					range.collapse(true);
-					range.moveEnd("character", endPos);
-					range.moveStart("character", startPos);
-					range.select();
-			 	}
-			});
-		}
-		
-		return this;
-	}
-	
 	/**
 	 * Guts of the inlineComplete plugin.
 	 */
@@ -103,22 +43,22 @@
 		 * @param {Object} termList
 		 */
 		_performComplete: function(inputElement, event, options) {
+			var $this = $._inlineComplete.sub(inputElement);
+			
 			// Prevent this method from being called twice on key pressing by excluding either
 			// keydown or keyup...
 			
 			// This data value is set further down
-			if(event.type == 'keyup' && sub(inputElement).data('__inlineComplete_noKeyUp') == true) {
-				sub(inputElement).data('__inlineComplete_noKeyUp', false);
+			if(event.type == 'keyup' && $this.data('__inlineComplete_noKeyUp') == true) {
+				$this.data('__inlineComplete_noKeyUp', false);
 				
 				return true;
 			
 			// This is the case when the user enters the first letter or deleted the selection
 			// made by this plugin and then starts typing again.
-			} else if(event.type == 'keydown' && inputElement.selectionStart == inputElement.selectionEnd) {
+			} else if(event.type == 'keydown' && $this.selection('start') == $this.selection('end')) {
 				return true;
 			}
-			
-			var letter = String.fromCharCode(event.which);
 			
 			// Backspace deletes current selection created by prior autocomplete action, if any.
 			// Backspace or no data
@@ -130,15 +70,19 @@
 				return this;
 			}
 			
-			// fromCharCode allways returns uppercase...
-			if(!event.shiftKey) {
-				letter = letter.toLowerCase();
-			}
+			// Get the letter the user pressed and trim the any whitespace
+			var letter = String.fromCharCode(event.which).replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 			
-			var $this = sub(inputElement),
-				termList = options.terms,
-				curPos = $this.cursorPosition(),
-				term = $this.val().substring(0, curPos),
+			if(letter == '')
+				return true;
+			
+			// fromCharCode allways returns uppercase...
+			if(!event.shiftKey)
+				letter = letter.toLowerCase();
+			
+			var termList	= options.terms,
+				curPos		= $this.cursorPosition(),
+				term		= $this.val().substring(0, curPos),
 				returnValue = true;
 			
 			if(options.caseInsensitive == true) {
@@ -160,9 +104,9 @@
 						
 						if(termList[i].substr(curPos, 1) == letter
 							&& event.type == 'keydown'
-							&& $this.get(0).selectionStart != $this.get(0).selectionEnd)
+							&& $this.selection('start') != $this.selection('end'))
 						{
-							$this.select(curPos + 1, currentTerm.length);
+							$this.selection(curPos + 1, currentTerm.length);
 							
 							// If this execution branch was reached, there is no need to
 							// execute at keyup again since the inline-completion is already done.
@@ -172,7 +116,7 @@
 							// entered into the text field.
 							returnValue = false;
 						} else  {
-							$this.val(termList[i]).select(curPos, currentTerm.length);
+							$this.val(termList[i]).selection(curPos, currentTerm.length);
 						}
 
 						break;
@@ -183,6 +127,114 @@
 			return returnValue;
 		}
 	};
+	
+	$._inlineComplete.sub = $.sub();
+	
+	/**
+	 * Sets and gets the cursor position inside the selected element(s).
+	 * @param {Number} pos Index of position to set.
+	 */
+	$._inlineComplete.sub.fn.cursorPosition = function(pos) {
+		if(!this.is('input[type=text]'))
+			return this;
+		
+		if (pos) {
+			this.each(function() {
+				$._inlineComplete.sub(this).select(pos, pos);
+			});
+			
+			return this;
+		} else {
+			return this.selection('start');
+		}
+	}
+	
+	/**
+	 * Selects the given range.
+	 * @param {Number} startPos
+	 * @param {Number} endPos
+	 */
+	$._inlineComplete.sub.fn.selection = function(startPos, endPos) {
+		if (typeof startPos == 'number' && typeof endPos == 'number') {
+			// No element filtering done here since we're checking for the existence of selectionStart/-End and select().
+			this.each(function() {
+				if (typeof this.selectionStart != "undefined") {
+					// Cool browsers
+					this.selectionStart = startPos;
+					this.selectionEnd = endPos;
+				} else if (document.selection && document.selection.createRange && this.select) {
+					// IE
+					this.focus();
+					this.select();
+					var range = document.selection.createRange();
+					range.collapse(true);
+					range.moveEnd("character", endPos);
+					range.moveStart("character", startPos);
+					range.select();
+			 	}
+			});
+		} else if(typeof startPos == 'string' && !endPos) {
+			type = startPos.toLowerCase();
+			
+			if (type == 'start' || type == 'end') {
+				var returnValue = '',
+					$this		= $._inlineComplete.sub(this.get(0)),
+					el			= this.get(0);
+				
+				if (typeof el.selectionStart != "undefined") {
+					if (type == 'start') {
+						returnValue = el.selectionStart;
+					} else if (type == 'end') {
+						returnValue = el.selectionEnd;
+					}
+				} else if (document.selection && document.selection.createRange) {
+					var range = document.selection.createRange(),
+						start = $this.val().indexOf(range.text);
+					
+					if (type == 'start') {
+						returnValue = start;
+					} else if (type == 'end') {
+						returnValue = start + range.text.length;
+					}
+				}
+					
+				return returnValue;
+			}
+		}
+		
+		return this;
+	}
+	
+	/*
+$._inlineComplete.sub.fn.selection = function(type) {
+		type = type.toLowerCase();
+		
+		var returnValue = '',
+			$this		= $._inlineComplete.sub(this.get(0));
+		
+		if (type == 'start' || type == 'end') {
+			if (typeof this.selectionStart != "undefined") {
+				if(type == 'start') {
+					returnValue = this.selectionStart;
+				} else if(type == 'end') {
+					returnValue = this.selectionEnd;
+				}
+			}
+			else if (document.selection && document.selection.createRange) {
+				var range = document.selection.createRange(),
+					start = $this.val().indexOf(range.text);
+				
+				if(type == 'start') {
+					returnValue = start;
+				} else if(type == 'end') {
+					returnValue = start + range.text.length;
+				}
+		 	}
+		}
+		
+		return returnValue;
+	}
+*/
 	
 	/**
 	 * Register inlineComplete plugin. This enables you to use $('input').inlineComplete();
