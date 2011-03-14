@@ -32,7 +32,7 @@
 	 */
 	$._inlineComplete = {
 		_defaultOptions: {
-			caseInsensitive: true
+			matchCase: false
 		},
 		
 		/**
@@ -84,7 +84,7 @@
 				term		= $this.val().substring(0, curPos),
 				returnValue = true;
 			
-			if(options.caseInsensitive == true) {
+			if(!options.matchCase) {
 				term = term.toLowerCase();
 			}
 			
@@ -92,7 +92,7 @@
 				for(var i = 0; i < termList.length; i++) {
 					currentTerm = termList[i];
 					
-					if(options.caseInsensitive) {
+					if(!options.matchCase) {
 						currentTerm = currentTerm.toLowerCase();
 					}
 
