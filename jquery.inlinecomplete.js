@@ -103,12 +103,22 @@
 		 * @param {Object} termList
 		 */
 		_performComplete: function(inputElement, event, options) {
-			var letter = String.fromCharCode(event.which);
+			// Prevent this method from being called twice on key pressing by excluding either
+			// keydown or keyup...
 			
-			// fromCharCode allways returns uppercase...
-			if(!event.shiftKey) {
-				letter = letter.toLowerCase();
+			// This data value is set further down
+			if(event.type == 'keyup' && sub(inputElement).data('__inlineComplete_noKeyUp') == true) {
+				sub(inputElement).data('__inlineComplete_noKeyUp', false);
+				
+				return true;
+			
+			// This is the case when the user enters the first letter or deleted the selection
+			// made by this plugin and then starts typing again.
+			} else if(event.type == 'keydown' && inputElement.selectionStart == inputElement.selectionEnd) {
+				return true;
 			}
+			
+			var letter = String.fromCharCode(event.which);
 			
 			// Backspace deletes current selection created by prior autocomplete action, if any.
 			// Backspace or no data
@@ -120,19 +130,22 @@
 				return this;
 			}
 			
-			termList = options.terms;
+			// fromCharCode allways returns uppercase...
+			if(!event.shiftKey) {
+				letter = letter.toLowerCase();
+			}
 			
 			var $this = sub(inputElement),
+				termList = options.terms,
 				curPos = $this.cursorPosition(),
-				term = $this.val().substring(0, curPos);
+				term = $this.val().substring(0, curPos),
+				returnValue = true;
 			
 			if(options.caseInsensitive == true) {
 				term = term.toLowerCase();
 			}
 			
-			var ret = true;
-			
-			if(term !== '') {
+			if(term != '') {
 				for(var i = 0; i < termList.length; i++) {
 					currentTerm = termList[i];
 					
@@ -150,7 +163,14 @@
 							&& $this.get(0).selectionStart != $this.get(0).selectionEnd)
 						{
 							$this.select(curPos + 1, currentTerm.length);
-							ret = false;
+							
+							// If this execution branch was reached, there is no need to
+							// execute at keyup again since the inline-completion is already done.
+							$this.data('__inlineComplete_noKeyUp', true);
+							
+							// Returning false makes sure the key pressed by the user isn't
+							// entered into the text field.
+							returnValue = false;
 						} else  {
 							$this.val(termList[i]).select(curPos, currentTerm.length);
 						}
@@ -160,7 +180,7 @@
 				}
 			}
 			
-			return ret;
+			return returnValue;
 		}
 	};
 	
