@@ -6,6 +6,7 @@ $(function() {
 	$('.name-list').text(termListNames.join(', '));
 	
 	$('[name=autocomplete_urls]').inlineComplete({
+		submitOnReturn: true,
 		terms: termListUrls
 	});
 	

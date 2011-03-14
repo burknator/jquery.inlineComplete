@@ -14,29 +14,34 @@
 </head>
 <body>
 	<h1>jQuery.inlineComplete demo</h1>
-	<p>
-		Get the latest version here: <a href="https://github.com/patrickburke/jquery.inlineComplete">https://github.com/patrickburke/jquery.inlineComplete</a><br />
-		&copy; 2011 Patrick Burke, <a href="http://patrickburke.de">http://patrickburke.de</a>
-	</p>
-	<p>
-		This input field should complete these URLs: <span class="url-list"></span><br/>
-		<input type="text" name="autocomplete_urls"/>
-	</p>
-	<p>
-		This input field should complete these names: <span class="name-list"></span><br/>
-		<input type="text" name="autocomplete_names"/>
-	</p>
-	<p>
-		This input field should complete some cities <br />
-		<input type="text" name="autocomplete_cities"/>
-	</p>
-	<p>
-		This input field should complete these URLs: <span class="url-list"></span><br/>
-		<input type="text" data-terms="list:facebook.com|apple.de|google.de|www.golem.de|golem.de" name="autocomplete_data_attr_list"/>
-	</p>
-	<p>
-		This input field should complete some cities <br />
-		<input type="text" data-terms="url:cities.json" name="autocomplete_data_attr_url"/>
-	</p>
+	<form action="http://patrickburke.de/action.php" method="post">
+		<p>
+			Get the latest version here: <a href="https://github.com/patrickburke/jquery.inlineComplete">https://github.com/patrickburke/jquery.inlineComplete</a><br />
+			&copy; 2011 Patrick Burke, <a href="http://patrickburke.de">http://patrickburke.de</a>
+		</p>
+		<p>
+			This input field should complete these URLs: <span class="url-list"></span><br/>
+			<input type="text" name="autocomplete_urls"/>
+		</p>
+		<p>
+			This input field should complete these names: <span class="name-list"></span><br/>
+			<input type="text" name="autocomplete_names"/>
+		</p>
+		<p>
+			This input field should complete some cities <br />
+			<input type="text" name="autocomplete_cities"/>
+		</p>
+		<p>
+			This input field should complete these URLs: <span class="url-list"></span><br/>
+			<input type="text" data-terms="list:facebook.com|apple.de|google.de|www.golem.de|golem.de" name="autocomplete_data_attr_list"/>
+		</p>
+		<p>
+			This input field should complete some cities <br />
+			<input type="text" data-terms="url:cities.json" name="autocomplete_data_attr_url"/>
+		</p>
+		<p>
+			<input type="submit" value="Submit" />
+		</p>
+	</form>
 </body>
 </html>

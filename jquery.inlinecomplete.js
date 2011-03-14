@@ -32,7 +32,8 @@
 	 */
 	$._inlineComplete = {
 		_defaultOptions: {
-			matchCase: false
+			matchCase: false,
+			submitOnReturn: false
 		},
 		
 		/**
@@ -43,6 +44,17 @@
 		 */
 		_performComplete: function(inputElement, event, options) {
 			var $this = $._inlineComplete.sub(inputElement);
+			
+			if (event.which == 13) {
+				$this.select($this.val().length, $this.val().length);
+				
+				if(options.submitOnReturn)
+					$this.parents('form').submit();
+				else
+					$this.blur();
+				
+				return false;
+			} 
 			
 			// Prevent this method from being called twice on key pressing by excluding either
 			// keydown or keyup...
@@ -61,10 +73,8 @@
 			
 			// Backspace deletes current selection created by prior auto-complete action, if any.
 			// Backspace or no data
-			if (event.which == 8 || !options.terms || options.terms.length == 0) 
+			if (event.which == 8 || !options.terms || options.terms.length == 0) { 
 				return true;
-			else if (event.which == 13) {
-				// TODO Blur and set selection to end of text!
 			} else if(event.which == 16) {
 				return this;
 			}
@@ -112,7 +122,7 @@
 							$this.data('__inlineComplete_noKeyUp', true);
 							
 							// Returning false makes sure the key pressed by the user isn't
-							// entered into the text field.
+							// inserted into the text field.
 							returnValue = false;
 						} else  {
 							$this.val(termList[i]).select(curPos, currentTerm.length);
@@ -250,7 +260,7 @@
 				$that.inlineComplete(options);
 			});
 		} else {
-			// Why can't I use jQuery.live() here?!
+			// TODO Why can't I use jQuery.live() here?!
 			this.filter('input[type=text]').bind('keyup keydown', function(e) {
 				return $._inlineComplete._performComplete(this, e, options);
 			});
