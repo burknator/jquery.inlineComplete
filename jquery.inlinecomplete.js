@@ -103,12 +103,21 @@
 		 * @param {Object} termList
 		 */
 		_performComplete: function(inputElement, event, options) {
+			var letter = String.fromCharCode(event.which);
+			
+			// fromCharCode allways returns uppercase...
+			if(!event.shiftKey) {
+				letter = letter.toLowerCase();
+			}
+			
 			// Backspace deletes current selection created by prior autocomplete action, if any.
 			// Backspace or no data
 			if (event.which == 8 || !options.terms || options.terms.length == 0) 
 				return true;
 			else if (event.which == 13) {
 				// TODO Blur and set selection to end of text!
+			} else if(event.which == 16) {
+				return this;
 			}
 			
 			termList = options.terms;
@@ -121,20 +130,37 @@
 				term = term.toLowerCase();
 			}
 			
-			if(term !== '') {      
+			var ret = true;
+			
+			if(term !== '') {
 				for(var i = 0; i < termList.length; i++) {
 					currentTerm = termList[i];
 					
-					if(options.caseInsensitive == true) {
+					if(options.caseInsensitive) {
 						currentTerm = currentTerm.toLowerCase();
 					}
-					
+
 					if(currentTerm.indexOf(term) === 0) {
-						$this.val(termList[i]).select(curPos, currentTerm.length);
+						// True if the current letter equals the next letter
+						// in matched term, the event is keydown and if there
+						// is selected text.
+						
+						if(termList[i].substr(curPos, 1) == letter
+							&& event.type == 'keydown'
+							&& $this.get(0).selectionStart != $this.get(0).selectionEnd)
+						{
+							$this.select(curPos + 1, currentTerm.length);
+							ret = false;
+						} else  {
+							$this.val(termList[i]).select(curPos, currentTerm.length);
+						}
+
 						break;
 					}
 				}
 			}
+			
+			return ret;
 		}
 	};
 	
@@ -179,7 +205,7 @@
 			});
 		} else {
 			// Why can't I use jQuery.live() here?!
-			this.filter('input[type=text]').bind('keyup', function(e) {
+			this.filter('input[type=text]').bind('keyup keydown', function(e) {
 				return $._inlineComplete._performComplete(this, e, options);
 			});
 		}
