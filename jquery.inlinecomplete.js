@@ -194,8 +194,8 @@
 
         if (type == 'start' || type == 'end') {
             var returnValue = '',
-            $this		= $._inlineComplete.sub(this.get(0)),
-            el			= this.get(0);
+            $this           = $._inlineComplete.sub(this.get(0)),
+            el              = this.get(0);
 
             if (typeof el.selectionStart != "undefined") {
                 if (type == 'start') {
