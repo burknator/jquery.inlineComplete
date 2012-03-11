@@ -71,9 +71,9 @@
                 return true;
             }
 
-            // Backspace deletes current selection created by prior auto-complete action, if any.
-            // Backspace or no data
-            if (event.which == 8 || !options.terms || options.terms.length == 0) {
+            // Backspace/Delete deletes current selection created by prior auto-complete action, if any.
+            // Backspace or delete or no data
+            if (event.which == 8 || event.which == 46 || !options.terms || options.terms.length == 0) {
                 return true;
             } else if(event.which == 16) {
                 return this;
@@ -89,16 +89,17 @@
             if(!event.shiftKey)
                 letter = letter.toLowerCase();
 
-            var termList	= options.terms,
-            curPos		= $this.cursorPosition(),
-            term		= $this.val().substring(0, curPos),
-            returnValue = true;
+            var termList    = options.terms,
+                curPos      = $this.cursorPosition(),
+                searchTerm  = $this.val().substring(0, curPos),
+                returnValue = true;
 
             if(!options.matchCase) {
-                term = term.toLowerCase();
+                searchTerm = searchTerm.toLowerCase();
             }
 
-            if(term != '') {
+            if(searchTerm != '') {
+                
                 for(var i = 0; i < termList.length; i++) {
                     currentTerm = termList[i];
 
@@ -106,15 +107,15 @@
                         currentTerm = currentTerm.toLowerCase();
                     }
 
-                    if(currentTerm.indexOf(term) === 0) {
+                    if(currentTerm.indexOf(searchTerm) === 0) {
                         // True if the current letter equals the next letter
                         // in matched term, the event is keydown and if there
                         // is selected text.
-
+                        
                         if(termList[i].substr(curPos, 1) == letter
                             && event.type == 'keydown'
-                            && $this.selection('start') != $this.selection('end'))
-                            {
+                            && $this.selection('start') != $this.selection('end')
+                        ) {
                             $this.select(curPos + 1, currentTerm.length);
 
                             // If this execution branch was reached, there is no need to
@@ -147,7 +148,7 @@
     $._inlineComplete.sub.fn.cursorPosition = function(pos) {
         if (pos) {
             this.filter('input[type=text]').each(function() {
-                $._inlineComplete.sub(this).selection(pos, pos);
+                $._inlineComplete.sub(this).select(pos, pos);
             });
 
             return this;
@@ -263,7 +264,7 @@
             });
         } else {
             // TODO Why can't I use jQuery.live() here?!
-            this.filter('input[type=text]').bind('keyup keydown', function(e) {
+            this.filter('input[type=text], textarea').bind('keyup keydown', function(e) {
                 return $._inlineComplete._performComplete(this, e, options);
             });
         }
