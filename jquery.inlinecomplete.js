@@ -1,4 +1,5 @@
 (function ($) {
+    'use strict';
     /**
      * Guts of the inlineComplete plugin.
      */
@@ -176,58 +177,63 @@
 
         var datalistSupport = !!(document.createElement('datalist') && window.HTMLDataListElement);
 
-        if (options.terms.length == 0) {
-            if (this.data('terms')) {
-                if (this.data('terms').indexOf('list') === 0) {
-                    options.terms = this.data('terms').replace(/^list:/i, '').split('|');
-                } else if (this.data('terms').indexOf('url') === 0) {
-                    options.terms = this.data('terms').replace(/^url:/i, '');
-                }
-            } else if(typeof this.attr('list') != 'undefined') {
-                var $datalist = $('#' + this.attr('list'));
-                if ($datalist.length > 0) {
-                    if (datalistSupport) {
-                        var datalistOptions = $datalist.get(0).options;
-                        for(var i in datalistOptions) {
-                            datalistOptions[i].value && options.terms.push(datalistOptions[i].value);
+        this.filter('input[type=text], textarea').each(function (e) {
+            var $this = $(this);
+
+            if (options.terms.length == 0) {
+                if ($this.data('terms')) {
+                    if ($this.data('terms').indexOf('list') === 0) {
+                        options.terms = $this.data('terms').replace(/^list:/i, '').split('|');
+                    } else if ($this.data('terms').indexOf('url') === 0) {
+                        options.terms = $this.data('terms').replace(/^url:/i, '');
+                    }
+                } else if(typeof $this.attr('list') != 'undefined') {
+                    var $datalist = $('#' + $this.attr('list'));
+                    if ($datalist.length > 0) {
+                        if (datalistSupport) {
+                            var datalistOptions = $datalist.get(0).options;
+                            for(var i in datalistOptions) {
+                                datalistOptions[i].value && options.terms.push(datalistOptions[i].value);
+                            }
+                        } else {
+                            options.terms = [];
+                            $datalist.find('option').each(function() {
+                                options.terms.push($this.attr('value'));
+                            });
                         }
-                    } else {
-                        options.terms = [];
-                        $datalist.find('option').each(function() {
-                            options.terms.push($(this).attr('value'));
-                        });
-                    }
 
-                    if (options.disableDatalist) {
-                        this.removeAttr('list');
+                        if (options.disableDatalist) {
+                            $this.removeAttr('list');
+                        }
                     }
                 }
             }
-        }
 
-        // Still no options? Get the hell out of here!
-        if (!options.terms) {
-            return this;
-        }
-
-        // TODO wouldn't it be great if you could pass a jqXHR object which
-        // is handled by inlineComplete?
-        if (typeof options.terms == 'string') {
-            if (/^http:\/\//i.test(options.terms)) {
-                $.getJSON(options.terms, function (response) {
-                    if (!response.terms && window.console && window.console.error)
-                        console.error("Invalid response for inline complete terms!");
-
-                    options.terms = response.terms;
-                });
+            // Still no options? Get the hell out of here!
+            if (!options.terms) {
+                return false;
             }
-        }
 
-        // TODO Why can't I use jQuery.live() here?!
-        this.filter('input[type=text], textarea').bind('keyup keydown', function (e) {
-            return _inlineComplete._performComplete(this, e, options);
+            // TODO wouldn't it be great if you could pass a jqXHR object which
+            // is handled by inlineComplete?
+            if (typeof options.terms == 'string') {
+                if (/^http:\/\//i.test(options.terms)) {
+                    $.getJSON(options.terms, function (response) {
+                        if (!response.terms && window.console && window.console.error)
+                            console.error("Invalid response for inline complete terms!");
+
+                        options.terms = response.terms;
+                    });
+                }
+            }
+
+            $this.on('keyup keydown', function (e) {
+                return _inlineComplete._performComplete($this, e, options);
+            });
+
+            return true;
         });
 
         return this;
-    }
+    };
 })(jQuery);
