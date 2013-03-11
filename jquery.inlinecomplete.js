@@ -34,42 +34,36 @@
          * @param {Object} options
          */
         _performComplete:function (inputElement, event, options) {
-            var $inputElement = $(inputElement);
-
-            // Backspace/Delete deletes current selection created by prior auto-complete action, if any.
-            // Backspace or delete or no data
-            if (event.which == 8 || event.which == 46 || !options.terms || options.terms.length == 0) {
+            if (event.which == 8 || event.which == 46 // Backspace, del
+                || event.ctrlKey || event.which == 17 // Ctrl + Letter, or Ctrl
+                || !options.terms || options.terms.length == 0
+            ) {
                 return true;
             } else if (event.which == 16) {
                 return this;
             }
 
-            // Get the letter the user pressed and trim the any whitespace
-            var letter = String.fromCharCode(event.which).replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+            var $inputElement = $(inputElement);
 
-            if (letter == '')
-                return true;
-
-            // String.fromCharCode returns uppercase...
-            if (!event.shiftKey)
-                letter = letter.toLowerCase();
-
-            var termList = options.terms,
-                curPos = $inputElement.__cursorPosition(),
-                userInput = this._getCurrentWord($inputElement.val()),
-                inputValue = $inputElement.val(),
+            var userInput = this._getCurrentWord($inputElement.val()),
                 returnValue = true;
 
-            if (!options.matchCase) {
-                userInput = userInput.toLowerCase();
-            }
-
             if (userInput != '') {
+                if (!options.matchCase) {
+                    userInput = userInput.toLowerCase();
+                }
+
                 if (event.type == 'keydown') {
                     // Move selection
+                    var selection = $inputElement.__getSelection(),
+                        letter = String.fromCharCode(event.which);
 
-                    var selection = $inputElement.__getSelection();
+                    if (letter == '')
+                        return true;
 
+                    // String.fromCharCode returns uppercase...
+                    if (!event.shiftKey)
+                        letter = letter.toLowerCase();
                     if (letter == selection.substr(0, 1)) {
                         $inputElement.__moveSelectionStart(1);
 
@@ -78,6 +72,9 @@
                         returnValue = false;
                     }
                 } else if(event.type == 'keyup') {
+                    var curPos = $inputElement.__cursorPosition(),
+                        inputValue = $inputElement.val();
+
                     // Make selection
                     var foundTerm = this._searchTerm(userInput, options.terms);
 
