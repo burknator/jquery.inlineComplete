@@ -43,10 +43,9 @@
                 return this;
             }
 
-            var $inputElement = $(inputElement);
-
-            var userInput = this._getCurrentWord($inputElement.val()),
-                returnValue = true;
+            var $inputElement = $(inputElement),
+                userInput     = this._getCurrentWord($inputElement.val()),
+                returnValue   = true;
 
             if (userInput != '') {
                 if (!options.matchCase) {
@@ -56,33 +55,32 @@
                 if (event.type == 'keydown') {
                     // Move selection
                     var selection = $inputElement.__getSelection(),
-                        letter = String.fromCharCode(event.which);
+                        letter    = String.fromCharCode(event.which);
 
                     if (letter == '')
-                        return true;
+                        return returnValue;
 
                     // String.fromCharCode returns uppercase...
-                    if (!event.shiftKey)
+                    if (!event.shiftKey) {
                         letter = letter.toLowerCase();
+                    }
+
                     if (letter == selection.substr(0, 1)) {
                         $inputElement.__moveSelectionStart(1);
-
-                        event.preventDefault();
 
                         returnValue = false;
                     }
                 } else if(event.type == 'keyup') {
-                    var curPos = $inputElement.__cursorPosition(),
+                    var curPos     = $inputElement.__cursorPosition(),
                         inputValue = $inputElement.val();
 
                     // Make selection
                     var foundTerm = this._searchTerm(userInput, options.terms);
 
                     if (foundTerm !== null) {
-                        var beforeCursor = inputValue.substr(0, curPos);
-                        var afterCursor = inputValue.substr(curPos, inputValue.length);
-
-                        var curPosInWord = userInput.length;
+                        var beforeCursor = inputValue.substr(0, curPos),
+                            afterCursor  = inputValue.substr(curPos, inputValue.length),
+                            curPosInWord = userInput.length;
 
                         $inputElement.val(beforeCursor + foundTerm.substr(curPosInWord, foundTerm.length) + afterCursor);
 
