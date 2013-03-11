@@ -22,4 +22,9 @@ $(function() {
     $('[name=autocomplete_data_attr_list]').inlineComplete();
 	
     $('[name=autocomplete_data_attr_url]').inlineComplete();
+
+
+    $('#dummy').on('keyup', function() {
+        console.log($(this).__getSelection());
+    })
 });
