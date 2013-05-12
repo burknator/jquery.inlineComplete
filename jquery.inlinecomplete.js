@@ -1,18 +1,33 @@
 (function ($) {
     'use strict';
-    /**
-     * Guts of the inlineComplete plugin.
-     */
+
     var _inlineComplete = {
+        /**
+         * Check browser support for HTML5 <datalist>
+         * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/datalist
+         *
+         * @var bool
+         */
+        dataListSupport: !!(document.createElement('datalist') && window.HTMLDataListElement),
+
         _defaultOptions:{
             list: [],
-            matchCase:false,
-            submitOnReturn:false,
+            matchCase: false,
+            submitOnReturn: false,
+            // TODO Implement
             startChar: '',
+            // TODO Implement
             startCharCi: true,
-            disableDatalist: false
+            disableDataList: false
         },
 
+        /**
+         * Searches for a term in the terms-list which starts with userInput.
+         * @param userInput
+         * @param terms
+         * @returns {string|null}
+         * @private
+         */
         _searchTerm: function(userInput, terms) {
             for (var i in terms) {
                 if (terms[i].substr(0, userInput.length) == userInput) {
@@ -23,6 +38,16 @@
             return null;
         },
 
+        /**
+         * Fetches the current "word" the cursor is placed in. Technically this
+         * reads the passed text from the passed cursor position backwards
+         * until a space is reached.
+         * TODO This should actually search for the first non-alphabetic character (".", ",", ":", etc.)
+         * @param text
+         * @param cursorPosition
+         * @returns {string}
+         * @private
+         */
         _getCurrentWord: function(text, cursorPosition) {
             var start = text.substr(0, cursorPosition).lastIndexOf(' ') + 1;
 
@@ -30,8 +55,9 @@
         },
 
         /**
-         * Performs the actual inline complete. Usually the body of the event callback.
-         * @param {DOMElement} inputElement The element which should have the inline complete.
+         * Performs the actual inline complete. Usually the body of the event
+         * callback.
+         * @param {Node} inputElement
          * @param {Object} event
          * @param {Object} options
          */
@@ -76,17 +102,23 @@
                     var curPos     = $inputElement.__cursorPosition(),
                         inputValue = $inputElement.val();
 
-                    // Make selection
                     var foundTerm = this._searchTerm(userInput, options.list);
 
+                    // When a term was found and the input changed from the
+                    // last time this event was fired. If the value didn't
+                    // change it means that the user still enters the same
+                    // word, hence we don't need to change the value.
                     if (foundTerm !== null && foundTerm != userInput) {
                         var beforeCursor = inputValue.substr(0, curPos),
                             afterCursor  = inputValue.substr(curPos, inputValue.length),
                             curPosInWord = curPos - (inputValue.substr(0, curPos).lastIndexOf(' ') + 1);
 
-                        $inputElement.val(beforeCursor + foundTerm.substr(curPosInWord, foundTerm.length) + afterCursor);
+                        // My sister suggested this var name...
+                        var poop = foundTerm.substr(curPosInWord, foundTerm.length);
 
-                        $inputElement.__select(curPos, foundTerm.substr(curPosInWord, foundTerm.length).length + curPos);
+                        $inputElement.val(beforeCursor + poop + afterCursor);
+
+                        $inputElement.__select(curPos, poop.length + curPos);
                     }
                 }
             }
@@ -95,11 +127,6 @@
         }
     };
 
-    /**
-     * Register the select plugin in the inlineComplete settings. Selects a range in the selected text fields.
-     * @param {Number} startPos
-     * @param {Number} endPos
-     */
     $.fn.__select = function (startPos, endPos) {
         if (typeof startPos == 'number' && typeof endPos == 'number') {
             this.each(function () {
@@ -173,8 +200,6 @@
      * @param {Object} options
      */
     $.fn.inlineComplete = function (options) {
-        var datalistSupport = !!(document.createElement('datalist') && window.HTMLDataListElement);
-
         this.filter('input[type=text], textarea').each(function (e) {
             var $this = $(this),
                 instanceOptions = $.extend(true, {}, _inlineComplete._defaultOptions, options);
@@ -183,37 +208,35 @@
                 if ($this.data('list')) {
                     if ($this.data('list').indexOf('list') === 0) {
                         instanceOptions.list = $this.data('list').replace(/^list:/i, '').split('|');
-                    } else if ($this.data('list').indexOf('url') === 0) {
-                        instanceOptions.list = $this.data('list').replace(/^url:/i, '');
                     }
                 } else if(typeof $this.attr('list') != 'undefined') {
+                    // HTML5 datalist
                     var $datalist = $('#' + $this.attr('list'));
                     if ($datalist.length > 0) {
-                        if (datalistSupport) {
+                        if (_inlineComplete.dataListSupport) {
+                            // Use JavaScript/DOM accessor when datalist element
+                            // is supported by the browser.
+
                             var datalistOptions = $datalist.get(0).options;
                             for(var i in datalistOptions) {
-                                datalistOptions[i].value && instanceOptions.list.push(datalistOptions[i].value);
+                                if (datalistOptions[i].value) {
+                                    instanceOptions.list.push(datalistOptions[i].value);
+                                }
                             }
                         } else {
+                            // "Manually" access the value attribute if the
+                            // browser doesn't support datalists.
+
                             instanceOptions.list = [];
                             $datalist.find('option').each(function() {
                                 instanceOptions.list.push($this.attr('value'));
                             });
                         }
 
-                        if (instanceOptions.disableDatalist) {
+                        if (instanceOptions.disableDataList) {
                             $this.removeAttr('list');
                         }
                     }
-                }
-            } else if (typeof instanceOptions.list == 'string') {
-                if (/^http:\/\//i.test(instanceOptions.list)) {
-                    $.getJSON(instanceOptions.list, function (response) {
-                        if (!response.list && window.console && window.console.error)
-                            console.error("Invalid response for inline complete list!");
-
-                        instanceOptions.list = response.list;
-                    });
                 }
             }
 
