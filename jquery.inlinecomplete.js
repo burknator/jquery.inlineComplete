@@ -5,10 +5,10 @@
      */
     var _inlineComplete = {
         _defaultOptions:{
-            terms: [],
+            list: [],
             matchCase:false,
             submitOnReturn:false,
-            startChar: 'p',
+            startChar: '',
             startCharCi: true,
             disableDatalist: false
         },
@@ -36,9 +36,10 @@
          * @param {Object} options
          */
         _performComplete:function (inputElement, event, options) {
+            console.log('Performing complete with list:', options.list);
             if (event.which == 8 || event.which == 46 // Backspace, del
                 || event.ctrlKey || event.which == 17 // Ctrl + Letter, or Ctrl
-                || !options.terms || options.terms.length == 0
+                || !options.list || options.list.length == 0
             ) {
                 return true;
             } else if (event.which == 16) {
@@ -77,7 +78,7 @@
                         inputValue = $inputElement.val();
 
                     // Make selection
-                    var foundTerm = this._searchTerm(userInput, options.terms);
+                    var foundTerm = this._searchTerm(userInput, options.list);
 
                     if (foundTerm !== null) {
                         var beforeCursor = inputValue.substr(0, curPos),
@@ -166,26 +167,25 @@
     /**
      * Register inlineComplete plugin. This enables you to use $('input').inlineComplete();
      *
-     * In the options object you have to at least include a list of terms you want have completion for.
-     * The index for that list must be "terms". You may also pass a URL. inlineComplete will then
-     * get the list of terms from that source. Again, the response must contain the "terms" index
-     * containing the terms.
+     * In the options object you have to at least include a list of list you want have completion for.
+     * The index for that list must be "list". You may also pass a URL. inlineComplete will then
+     * get the list of list from that source. Again, the response must contain the "list" index
+     * containing the list.
      * @param {Object} options
      */
     $.fn.inlineComplete = function (options) {
-        options = $.extend({}, _inlineComplete._defaultOptions, options);
-
         var datalistSupport = !!(document.createElement('datalist') && window.HTMLDataListElement);
 
         this.filter('input[type=text], textarea').each(function (e) {
-            var $this = $(this);
+            var $this = $(this),
+                instanceOptions = $.extend(true, {}, _inlineComplete._defaultOptions, options);
 
-            if (options.terms.length == 0) {
-                if ($this.data('terms')) {
-                    if ($this.data('terms').indexOf('list') === 0) {
-                        options.terms = $this.data('terms').replace(/^list:/i, '').split('|');
-                    } else if ($this.data('terms').indexOf('url') === 0) {
-                        options.terms = $this.data('terms').replace(/^url:/i, '');
+            if (instanceOptions.list.length == 0) {
+                if ($this.data('list')) {
+                    if ($this.data('list').indexOf('list') === 0) {
+                        instanceOptions.list = $this.data('list').replace(/^list:/i, '').split('|');
+                    } else if ($this.data('list').indexOf('url') === 0) {
+                        instanceOptions.list = $this.data('list').replace(/^url:/i, '');
                     }
                 } else if(typeof $this.attr('list') != 'undefined') {
                     var $datalist = $('#' + $this.attr('list'));
@@ -193,42 +193,47 @@
                         if (datalistSupport) {
                             var datalistOptions = $datalist.get(0).options;
                             for(var i in datalistOptions) {
-                                datalistOptions[i].value && options.terms.push(datalistOptions[i].value);
+                                datalistOptions[i].value && instanceOptions.list.push(datalistOptions[i].value);
                             }
                         } else {
-                            options.terms = [];
+                            instanceOptions.list = [];
                             $datalist.find('option').each(function() {
-                                options.terms.push($this.attr('value'));
+                                instanceOptions.list.push($this.attr('value'));
                             });
                         }
 
-                        if (options.disableDatalist) {
+                        if (instanceOptions.disableDatalist) {
                             $this.removeAttr('list');
                         }
                     }
                 }
-            }
+            } else if (typeof instanceOptions.list == 'string') {
+                if (/^http:\/\//i.test(instanceOptions.list)) {
+                    $.getJSON(instanceOptions.list, function (response) {
+                        if (!response.list && window.console && window.console.error)
+                            console.error("Invalid response for inline complete list!");
 
-            // Still no options? Get the hell out of here!
-            if (!options.terms) {
-                return false;
-            }
-
-            // TODO wouldn't it be great if you could pass a jqXHR object which
-            // is handled by inlineComplete?
-            if (typeof options.terms == 'string') {
-                if (/^http:\/\//i.test(options.terms)) {
-                    $.getJSON(options.terms, function (response) {
-                        if (!response.terms && window.console && window.console.error)
-                            console.error("Invalid response for inline complete terms!");
-
-                        options.terms = response.terms;
+                        instanceOptions.list = response.list;
                     });
                 }
             }
 
+            var cleanList = [];
+            for(var i in instanceOptions.list) {
+                if (instanceOptions.list[i].replace(/\s*/, '') != '') {
+                    cleanList.push(instanceOptions.list[i]);
+                }
+            }
+
+            instanceOptions.list = cleanList;
+
+            // Still no options? Get the hell out of here!
+            if (instanceOptions.list.length == 0) {
+                return true;
+            }
+
             $this.on('keyup keydown', function (e) {
-                return _inlineComplete._performComplete($this, e, options);
+                return _inlineComplete._performComplete($this, e, instanceOptions);
             });
 
             return true;
