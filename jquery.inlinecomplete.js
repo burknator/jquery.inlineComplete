@@ -36,7 +36,6 @@
          * @param {Object} options
          */
         _performComplete:function (inputElement, event, options) {
-            console.log('Performing complete with list:', options.list);
             if (event.which == 8 || event.which == 46 // Backspace, del
                 || event.ctrlKey || event.which == 17 // Ctrl + Letter, or Ctrl
                 || !options.list || options.list.length == 0
@@ -80,10 +79,10 @@
                     // Make selection
                     var foundTerm = this._searchTerm(userInput, options.list);
 
-                    if (foundTerm !== null) {
+                    if (foundTerm !== null && foundTerm != userInput) {
                         var beforeCursor = inputValue.substr(0, curPos),
                             afterCursor  = inputValue.substr(curPos, inputValue.length),
-                            curPosInWord = userInput.length;
+                            curPosInWord = curPos - (inputValue.substr(0, curPos).lastIndexOf(' ') + 1);
 
                         $inputElement.val(beforeCursor + foundTerm.substr(curPosInWord, foundTerm.length) + afterCursor);
 
