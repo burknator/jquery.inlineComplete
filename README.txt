@@ -1,12 +1,11 @@
 /*
 * jQuery inlineComplete Plugin
-* Examples and documentation at: http://patrickburke.de/index.php/jquery-inlinecomplete
-* Version: 0.12 ALPHA
-* Requires: jQuery v1.5
+* Examples and documentation at: http://pburke.de/jquery-inlinecomplete
+* Version: 0.2
 *
 * Licensed under the MIT license:
 *
-* Copyright (c) 2011 Patrick Burke
+* Copyright (c) 2013 Patrick Burke
 * 
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
